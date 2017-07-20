@@ -34,7 +34,7 @@ FarmingCampaign <- function(saved_energy, num_five_refills, num_ten_refills) {
   
   while (saved_energy >= 8 || refills > 0) {
     
-    while (saved_energy < 43 && refills > 0) {
+    while (saved_energy < limit && refills > 0) {
       if (num_ten_refills > 0) {
         getURL(ten_refills)
         num_ten_refills = num_ten_refills - 1
@@ -61,6 +61,25 @@ FarmingCampaign <- function(saved_energy, num_five_refills, num_ten_refills) {
   }
 }
 
+getChallengeID <- function(refill) {
+  data = getURL(general_info, ssl.verifyhost=FALSE, ssl.verifypeer=FALSE)
+  
+  if (refill) {
+    start = str_locate_all(pattern = '"challenge":', data)[[1]][1,2]
+    
+    stats = substring(data, start, start + 10)
+    
+    ret = substring(stats, 3, 6)
+  } else {
+    start = str_locate_all(pattern = '"challenge":', data)[[1]][3,2]
+    
+    stats = substring(data, start, start + 10)
+    
+    ret = substring(stats, 3, 6)
+  }
+  return(ret)
+}
+
 startMsg <- function() {
   message("Starting now...")
 }
@@ -76,9 +95,15 @@ endMsg <- function() {
 # You need to add your ID and hashed password here!
 my_id=""
 my_password=""
+limit = 43 #my max is 53, adjust accordingly to your max energy
 
-start_Rchallenge = paste("https://cb-live.synapse-games.com/api.php?message=startChallenge&challenge_id=1101&user_id=", my_id, "&password=", my_password, sep="")
-start_NRchallenge = paste("https://cb-live.synapse-games.com/api.php?message=startChallenge&challenge_id=1104user_id=", my_id, "&password=", my_password, sep="")
+general_info = paste("https://cb-live.synapse-games.com/api.php?message=getGuildWarStatus&user_id=", my_id, "&password=", my_password,sep="")
+
+r_challenge_id = getChallengeID(TRUE)
+nr_challenge_id = getChallengeID(FALSE)
+
+start_Rchallenge = paste("https://cb-live.synapse-games.com/api.php?message=startChallenge&challenge_id=", r_challenge_id, "&user_id=", my_id, "&password=", my_password, sep="")
+start_NRchallenge = paste("https://cb-live.synapse-games.com/api.php?message=startChallenge&challenge_id=", nr_challenge_id, "&user_id=", my_id, "&password=", my_password, sep="")
 five_refills=paste('https://cb-live.synapse-games.com/api.php?message=useItem&item_id=1002&number=1&user_id=', my_id, '&password=', my_password, sep="")
 ten_refills=paste('https://cb-live.synapse-games.com/api.php?message=useItem&item_id=1003&number=1&user_id=', my_id, '&password=', my_password, sep="")
 start_battle=paste('https://cb-live.synapse-games.com/api.php?message=startMission&mission_id=175&user_id=', my_id, '&password=', my_password, sep="")
